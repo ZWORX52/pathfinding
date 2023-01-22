@@ -1,0 +1,17 @@
+[
+{
+  "directory": "/home/zworx52/Projects/tui/ncurses-pathfinding/build",
+  "command": "/usr/bin/c++   -std=gnu++2b -o CMakeFiles/pathfinding.dir/main.cpp.o -c /home/zworx52/Projects/tui/ncurses-pathfinding/main.cpp",
+  "file": "/home/zworx52/Projects/tui/ncurses-pathfinding/main.cpp"
+},
+{
+  "directory": "/home/zworx52/Projects/tui/ncurses-pathfinding/build",
+  "command": "/usr/bin/c++   -std=gnu++2b -o CMakeFiles/pathfinding.dir/grid.cpp.o -c /home/zworx52/Projects/tui/ncurses-pathfinding/grid.cpp",
+  "file": "/home/zworx52/Projects/tui/ncurses-pathfinding/grid.cpp"
+},
+{
+  "directory": "/home/zworx52/Projects/tui/ncurses-pathfinding/build",
+  "command": "/usr/bin/c++   -std=gnu++2b -o CMakeFiles/pathfinding.dir/astar.cpp.o -c /home/zworx52/Projects/tui/ncurses-pathfinding/astar.cpp",
+  "file": "/home/zworx52/Projects/tui/ncurses-pathfinding/astar.cpp"
+}
+]
