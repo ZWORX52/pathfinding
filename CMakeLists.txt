@@ -9,3 +9,5 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_executable(pathfinding main.cpp grid.cpp astar.cpp)
 
 target_link_libraries(pathfinding ncurses)
+
+add_compile_options(-Wall -Wextra -Werror)

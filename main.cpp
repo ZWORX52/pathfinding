@@ -6,8 +6,8 @@
 
 #include <ncurses.h>
 
-#include "grid.hpp"
 #include "astar.hpp"
+#include "grid.hpp"
 
 int main(int argc, char *argv[]) {
     std::stringstream
@@ -73,6 +73,9 @@ int main(int argc, char *argv[]) {
             case 'i':
                 // initialize
                 astar::init(goal_x, goal_y, world);
+            case 's':
+                // step
+                astar::tick();
             case 'c':
                 // toggle cursor
                 curs_active = curs_set(curs_active ^ 1);

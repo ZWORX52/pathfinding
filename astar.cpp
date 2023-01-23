@@ -1,11 +1,11 @@
-#include "astar.hpp"
-
-#include "grid.hpp"
+#include "./astar.hpp"
 
 #include <cmath>
 #include <deque>
 #include <forward_list>
 #include <vector>
+
+#include "./grid.hpp"
 
 namespace astar {
 grid<int> *current_grid = nullptr;
@@ -43,13 +43,14 @@ double node::compute_weight(node &goal) {
     //     |   \--- cost of horizontal step
     //     |
     //     \--- final heuristic
-    return h;
+    return g + h;
 }
 
-node::node(int x, int y, node &goal, node *parent = nullptr) {
+node::node(int x, int y, node &goal, node *parent) {
     _x = x;
     _y = y;
     _parent = parent;
+    _generation = parent->_generation + 1;
     _weight = compute_weight(goal);
 }
 
@@ -57,8 +58,13 @@ node::node(int x, int y, node *parent) {
     _x = x;
     _y = y;
     _parent = parent;
+    if (parent != 0) {
+        _generation = parent->_generation + 1;
+    } else {
+        _generation = 0;
+    }
+    _weight = 0;
 }
-
 node goal(-1, -1);
 
 // it's a queue. sshhhh
@@ -75,18 +81,20 @@ bool tick() {
     node cur = queue.back();
     queue.pop_back();
     visited.push_front(cur);
-    const static std::pair<int, int> dirs[4] = {
+    (*current_grid)[cur.y()][cur.x()] = 4;
+    static const std::pair<int, int> dirs[4] = {
         {-1, 0}, {0, -1}, {1, 0}, {0, 1}};
     for (std::pair<int, int> dir : dirs) {
         int newx = cur.x() + dir.first;
         int newy = cur.y() + dir.second;
         if (newx == goal.x() && newy == goal.y())
-
-            if (between(newx, 0, current_grid->width()) &&
-                between(newy, 0, current_grid->height()) &&
-                (*current_grid)[newy][newx] == 1) {
-                queue.push_back(node(newx, newy, goal, &cur));
-            }
+            // algorithm is done
+            return true;
+        if (between(newx, 0, current_grid->width()) &&
+            between(newy, 0, current_grid->height()) &&
+            (*current_grid)[newy][newx] == 1) {
+            queue.push_back(node(newx, newy, goal, &cur));
+        }
     }
     return false;
 }
