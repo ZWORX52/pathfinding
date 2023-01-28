@@ -19,12 +19,23 @@ class node {
     node(int x, int y, node *parent = nullptr);
 
     // rocket science!
-    inline auto operator<=>(node &other) const { return _weight <=> other._weight; }
+    inline auto operator<=>(const node &other) const {
+        return _weight <=> other._weight;
+    }
 
     inline int x() { return _x; }
     inline int y() { return _y; }
+    inline double weight() { return _weight; }
+    inline node *parent() { return _parent; }
+
+    static inline bool rev_cmp(node &lhs, node &rhs) { return lhs > rhs; }
 };
 
+extern bool initialized;
+
 bool tick();
-void init(int goal_x, int goal_y, grid<int> &world);
+void init(const node &_goal, const node &start, grid<int> &world);
+void backtrack(grid<int> *world);
+void weights();
+void term();
 }  // namespace astar

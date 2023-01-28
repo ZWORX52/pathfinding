@@ -8,6 +8,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(pathfinding main.cpp grid.cpp astar.cpp)
 
-target_link_libraries(pathfinding ncurses)
+target_link_libraries(pathfinding ncurses spdlog fmt)
 
-add_compile_options(-Wall -Wextra -Werror)
+add_compile_options(-Og -g -Wall -Wextra -Werror)

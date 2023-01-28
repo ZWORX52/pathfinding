@@ -18,7 +18,7 @@ template <typename T> class grid {
         data = std::vector<std::vector<T>>(height, std::vector<T>(width));
     }
 
-    std::vector<T> &operator[](int idx) { return data[idx]; }
+    std::vector<T> &operator[](size_t idx) { return data[idx]; }
 
     friend std::ostream &operator<<(std::ostream &os, const grid<T> &obj) {
         for (const std::vector<T> &row : obj.data) {
@@ -30,6 +30,8 @@ template <typename T> class grid {
         }
         return os;
     }
+
+    std::vector <T> &at(size_t idx) { return data.at(idx); }
 
     inline char translate(T val) { return translation[val]; }
 
