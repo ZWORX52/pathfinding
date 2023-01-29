@@ -72,6 +72,7 @@ node::node(int x, int y, node *parent) {
 node goal(-1, -1);
 
 bool initialized = false;
+bool path_display = false;
 
 // it's a queue. sshhhh
 std::vector<node> queue;
@@ -79,6 +80,26 @@ std::forward_list<node> visited;
 
 inline bool between(int val, int low, int high) {
     return val >= low && val < high;
+}
+
+void display_path() {
+    // display the current path
+    node *cur = &visited.front();
+    while (cur != nullptr) {
+        int &grid_square = (*current_grid)[cur->y()][cur->x()];
+        if (grid_square == 4)
+            grid_square = 7;
+        cur = cur->parent();
+    }
+}
+
+void clear_path() {
+    for (std::vector<int> &row : *current_grid) {
+        for (int &item : row) {
+            if (item == 7)
+                item = 4;
+        }
+    }
 }
 
 bool tick() {
@@ -89,6 +110,8 @@ bool tick() {
         // algorithm is done when the queue is empty
         return true;
     }
+
+    if (path_display) clear_path();
 
     {
         node cur = queue.back();
@@ -121,6 +144,7 @@ bool tick() {
             }
         }
     }
+    if (path_display) display_path();
     std::sort(queue.begin(), queue.end(), node::rev_cmp);
     return false;
 }
@@ -156,6 +180,8 @@ void init(const node &_goal, const node &start, grid<int> &world) {
 void term() {
     // terminate: lets go of the pointer and maybe does other things in the
     // future (resets goal?)
+    // aaaaaaaaaaaaaaaHHHHHHHH I had this after the current_grid = nullptr *facepalm*
+    clear_path();
     current_grid = nullptr;
     goal = node(-1, -1);
     initialized = false;

@@ -32,6 +32,7 @@ class node {
 };
 
 extern bool initialized;
+extern bool path_display;
 
 bool tick();
 void init(const node &_goal, const node &start, grid<int> &world);

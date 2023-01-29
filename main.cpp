@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
     // TODO
     // TODO spdlog
     // TODO
-    
+
     int height, width;
 
     initscr();
@@ -47,8 +47,14 @@ int main(int argc, char *argv[]) {
     note_log << "note: dimensions are " << height << "x" << width << "\n";
 
     grid<int> world(height, width);
-    world.set_translation(std::map<int, char>{
-        {0, ' '}, {1, '#'}, {2, ':'}, {3, '!'}, {4, '.'}, {5, ','}, {6, '*'}});
+    world.set_translation(std::map<int, char>{{0, ' '},
+                                              {1, '#'},
+                                              {2, ':'},
+                                              {3, '!'},
+                                              {4, '.'},
+                                              {5, ','},
+                                              {6, '*'},
+                                              {7, '~'}});
 
     int goal_x = 1, goal_y = 1;
     world[goal_y][goal_x] = 3;
@@ -114,6 +120,10 @@ int main(int argc, char *argv[]) {
             case 'b':
                 // backtrack
                 astar::backtrack(&world);
+                break;
+            case 'd':
+                // toggle displaying path
+                astar::path_display = !astar::path_display;
                 break;
             case KEY_MOUSE:
                 if (getmouse(&mouse_event) == OK) {
