@@ -31,7 +31,7 @@ template <typename T> class grid {
         return os;
     }
 
-    std::vector <T> &at(size_t idx) { return data.at(idx); }
+    std::vector<T> &at(size_t idx) { return data.at(idx); }
 
     inline char translate(T val) { return translation[val]; }
 
@@ -40,4 +40,13 @@ template <typename T> class grid {
 
     inline size_t height() { return data.size(); }
     inline size_t width() { return data.at(0).size(); }
+
+    void clear(T val, T replacement) {
+        for (std::vector<T> &row : data) {
+            for (T &item : row) {
+                if (item == val)
+                    item = replacement;
+            }
+        }
+    }
 };

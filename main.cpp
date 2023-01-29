@@ -78,26 +78,25 @@ int main(int argc, char *argv[]) {
                 exit = true;
                 break;
             case 'f':
-                // pneumonic: from
+                // from
                 world[start_y][start_x] = 0;
                 start_x = last_mouse_x;
                 start_y = last_mouse_y;
                 world[start_y][start_x] = 2;
                 break;
             case 'g':
-                // pneumonic: goal
+                // goal
                 world[goal_y][goal_x] = 0;
                 goal_x = last_mouse_x;
                 goal_y = last_mouse_y;
                 world[goal_y][goal_x] = 3;
                 break;
             case 'p':
-                // pneumonic: play/pause
+                // play/pause
                 play = !play;
                 break;
             case 'i':
                 // initialize
-                note_log << "note: astar: initializing\n";
                 astar::init(astar::node(goal_x, goal_y),
                             astar::node(start_x, start_y), world);
                 break;
@@ -110,7 +109,6 @@ int main(int argc, char *argv[]) {
                 break;
             case 't':
                 // terminate
-                note_log << "note: astar: terminating\n";
                 astar::term();
                 break;
             case 'c':
@@ -119,11 +117,18 @@ int main(int argc, char *argv[]) {
                 break;
             case 'b':
                 // backtrack
-                astar::backtrack(&world);
+                astar::backtrack(world);
                 break;
             case 'd':
                 // toggle displaying path
                 astar::path_display = !astar::path_display;
+                break;
+            case 'r':
+                // reset
+                astar::reset(world);
+                astar::init(astar::node(goal_x, goal_y),
+                            astar::node(start_x, start_y), world);
+                play = false;
                 break;
             case KEY_MOUSE:
                 if (getmouse(&mouse_event) == OK) {

@@ -111,7 +111,8 @@ bool tick() {
         return true;
     }
 
-    if (path_display) clear_path();
+    if (path_display)
+        clear_path();
 
     {
         node cur = queue.back();
@@ -144,18 +145,19 @@ bool tick() {
             }
         }
     }
-    if (path_display) display_path();
+    if (path_display)
+        display_path();
     std::sort(queue.begin(), queue.end(), node::rev_cmp);
     return false;
 }
 
-void backtrack(grid<int> *world) {
+void backtrack(grid<int> &world) {
     // finish the algorithm by finding the final added node and going ->parent
     // repeatedly
     // assuming normal execution, the front will be the goal node. :D
     node *current = &visited.front();
     while (current != nullptr) {
-        int &grid_square = (*world)[current->y()][current->x()];
+        int &grid_square = world[current->y()][current->x()];
         if (grid_square == 4)
             grid_square = 6;
         current = current->parent();
@@ -180,10 +182,22 @@ void init(const node &_goal, const node &start, grid<int> &world) {
 void term() {
     // terminate: lets go of the pointer and maybe does other things in the
     // future (resets goal?)
-    // aaaaaaaaaaaaaaaHHHHHHHH I had this after the current_grid = nullptr *facepalm*
-    clear_path();
+
+    // aaaaaaaaaaaaaaaHHHHHHHH I had this after the current_grid = nullptr
+    // *facepalm*
+    current_grid->clear(7, 0);
+    backtrack(*current_grid);
     current_grid = nullptr;
     goal = node(-1, -1);
     initialized = false;
+}
+
+void reset(grid<int> &world) {
+    queue.clear();
+    visited.clear();
+
+    world.clear(4, 0);
+    world.clear(5, 0);
+    world.clear(6, 0);
 }
 }  // namespace astar
