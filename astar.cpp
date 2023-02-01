@@ -1,4 +1,4 @@
-#include "./astar.hpp"
+#include "astar.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -8,8 +8,8 @@
 #include <functional>
 #include <vector>
 
-#include "./grid.hpp"
-#include "./logs.hpp"
+#include "grid.hpp"
+#include "logs.hpp"
 
 namespace astar {
 grid<int> *current_grid = nullptr;

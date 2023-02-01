@@ -6,7 +6,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_executable(pathfinding main.cpp grid.cpp astar.cpp)
+add_executable(pathfinding main.cpp grid.cpp astar.cpp render.cpp)
 
 target_link_libraries(pathfinding ncurses spdlog fmt)
 
