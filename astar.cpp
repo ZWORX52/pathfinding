@@ -10,6 +10,7 @@
 
 #include "grid.hpp"
 #include "logs.hpp"
+#include "render.hpp"
 
 namespace astar {
 grid<int> *current_grid = nullptr;
@@ -73,6 +74,7 @@ node goal(-1, -1);
 
 bool initialized = false;
 bool path_display = false;
+bool success = false;
 
 // it's a queue. sshhhh
 std::vector<node> queue;
@@ -87,18 +89,9 @@ void display_path() {
     node *cur = &visited.front();
     while (cur != nullptr) {
         int &grid_square = (*current_grid)[cur->y()][cur->x()];
-        if (grid_square == 4)
-            grid_square = 7;
+        if (grid_square == EXPLORED)
+            grid_square = EXPLORE_PATH;
         cur = cur->parent();
-    }
-}
-
-void clear_path() {
-    for (std::vector<int> &row : *current_grid) {
-        for (int &item : row) {
-            if (item == 7)
-                item = 4;
-        }
     }
 }
 
@@ -108,16 +101,18 @@ bool tick() {
         return false;
     if (queue.empty()) {
         // algorithm is done when the queue is empty
+        // however, the algorithm failed to find a path. :(
+        success = false;
         return true;
     }
 
-    if (path_display)
-        clear_path();
+    current_grid->clear(EXPLORE_PATH, EXPLORED);
 
     {
         node cur = queue.back();
         if (cur.x() == goal.x() && cur.y() == goal.y()) {
             visited.push_front(cur);
+            success = true;
             return true;
         }
         queue.pop_back();
@@ -125,8 +120,8 @@ bool tick() {
     }
 
     node *cur = &visited.front();
-    if ((*current_grid)[cur->y()][cur->x()] != 2)
-        (*current_grid)[cur->y()][cur->x()] = 4;
+    if ((*current_grid)[cur->y()][cur->x()] != START)
+        (*current_grid)[cur->y()][cur->x()] = EXPLORED;
 
     static const std::pair<int, int> dirs[8] = {
         {-1, 0}, {0, -1}, {1, 0}, {0, 1}, {-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
@@ -138,9 +133,9 @@ bool tick() {
         if (between(newx, 0, current_grid->width()) &&
             between(newy, 0, current_grid->height())) {
             int &cur_square = (*current_grid)[newy][newx];
-            if (cur_square == 0 || cur_square == 3) {
-                if (cur_square == 0)
-                    (*current_grid)[newy][newx] = 5;
+            if (cur_square == PASSABLE || cur_square == GOAL) {
+                if (cur_square == PASSABLE)
+                    (*current_grid)[newy][newx] = QUEUE;
                 queue.push_back(node(newx, newy, goal, cur));
             }
         }
@@ -158,8 +153,8 @@ void backtrack(grid<int> &world) {
     node *current = &visited.front();
     while (current != nullptr) {
         int &grid_square = world[current->y()][current->x()];
-        if (grid_square == 4)
-            grid_square = 6;
+        if (grid_square == EXPLORED)
+            grid_square = PATH;
         current = current->parent();
     }
 }
@@ -185,8 +180,9 @@ void term() {
 
     // aaaaaaaaaaaaaaaHHHHHHHH I had this after the current_grid = nullptr
     // *facepalm*
-    current_grid->clear(7, 0);
-    backtrack(*current_grid);
+    current_grid->clear(EXPLORE_PATH, PASSABLE);
+    if (success)
+        backtrack(*current_grid);
     current_grid = nullptr;
     goal = node(-1, -1);
     initialized = false;
@@ -196,8 +192,8 @@ void reset(grid<int> &world) {
     queue.clear();
     visited.clear();
 
-    world.clear(4, 0);
-    world.clear(5, 0);
-    world.clear(6, 0);
+    world.clear(EXPLORED, PASSABLE);
+    world.clear(QUEUE, PASSABLE);
+    world.clear(PATH, PASSABLE);
 }
 }  // namespace astar
