@@ -31,9 +31,17 @@ class node {
     static inline bool rev_cmp(node &lhs, node &rhs) { return lhs > rhs; }
 };
 
+struct stats {
+    size_t path_length;
+    size_t queue_size;
+    size_t explored_size;
+    size_t explore_path_length;
+};
+
 extern bool initialized;
 extern bool path_display;
 extern bool success;
+extern bool done;
 
 bool tick();
 void init(const node &_goal, const node &start, grid<int> &world);
@@ -41,4 +49,7 @@ void backtrack(grid<int> &world);
 void weights();
 void term();
 void reset(grid<int> &world);
+stats get_stats();
+void change_goal(const node &_goal);
+void change_start(const node &start);
 }  // namespace astar

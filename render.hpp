@@ -1,3 +1,5 @@
+#pragma once
+
 extern const int PASSABLE;
 extern const int IMPASSABLE;
 extern const int START;

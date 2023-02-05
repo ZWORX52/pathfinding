@@ -3,10 +3,12 @@
 #include <algorithm>
 #include <cmath>
 #include <deque>
-#include <fmt/core.h>
-#include <forward_list>
 #include <functional>
+#include <list>
+#include <stdexcept>
 #include <vector>
+
+#include <fmt/core.h>
 
 #include "grid.hpp"
 #include "logs.hpp"
@@ -75,10 +77,14 @@ node goal(-1, -1);
 bool initialized = false;
 bool path_display = false;
 bool success = false;
+bool done = false;
+
+size_t path_length;
+size_t explore_path_length;
 
 // it's a queue. sshhhh
 std::vector<node> queue;
-std::forward_list<node> visited;
+std::list<node> visited;
 
 inline bool between(int val, int low, int high) {
     return val >= low && val < high;
@@ -86,11 +92,13 @@ inline bool between(int val, int low, int high) {
 
 void display_path() {
     // display the current path
+    explore_path_length = 0;
     node *cur = &visited.front();
     while (cur != nullptr) {
         int &grid_square = (*current_grid)[cur->y()][cur->x()];
         if (grid_square == EXPLORED)
             grid_square = EXPLORE_PATH;
+        explore_path_length++;
         cur = cur->parent();
     }
 }
@@ -107,7 +115,6 @@ bool tick() {
     }
 
     current_grid->clear(EXPLORE_PATH, EXPLORED);
-
     {
         node cur = queue.back();
         if (cur.x() == goal.x() && cur.y() == goal.y()) {
@@ -155,6 +162,7 @@ void backtrack(grid<int> &world) {
         int &grid_square = world[current->y()][current->x()];
         if (grid_square == EXPLORED)
             grid_square = PATH;
+        path_length++;
         current = current->parent();
     }
 }
@@ -168,10 +176,23 @@ void weights() {
 }
 
 void init(const node &_goal, const node &start, grid<int> &world) {
+    path_length = 0;
     goal = _goal;
     queue.push_back(start);
     current_grid = &world;
     initialized = true;
+    success = false;
+    done = false;
+}
+
+void change_goal(const node &_goal) { goal = _goal; }
+
+void change_start(const node &start) {
+    // if this is called in the middle of a*, bad things will happen
+    if (queue.size() != 1)
+        throw std::logic_error(
+            "change_start called during invalid astar state");
+    queue[0] = start;
 }
 
 void term() {
@@ -180,12 +201,13 @@ void term() {
 
     // aaaaaaaaaaaaaaaHHHHHHHH I had this after the current_grid = nullptr
     // *facepalm*
-    current_grid->clear(EXPLORE_PATH, PASSABLE);
+    current_grid->clear(EXPLORE_PATH, EXPLORED);
     if (success)
         backtrack(*current_grid);
     current_grid = nullptr;
     goal = node(-1, -1);
     initialized = false;
+    done = true;
 }
 
 void reset(grid<int> &world) {
@@ -195,5 +217,12 @@ void reset(grid<int> &world) {
     world.clear(EXPLORED, PASSABLE);
     world.clear(QUEUE, PASSABLE);
     world.clear(PATH, PASSABLE);
+
+    explore_path_length = 0;
+}
+
+stats get_stats() {
+    return stats{path_length, queue.size(), visited.size(),
+                 explore_path_length};
 }
 }  // namespace astar

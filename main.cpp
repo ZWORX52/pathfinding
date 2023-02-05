@@ -30,16 +30,22 @@ int main(int argc, char *argv[]) {
     }
     start_color();
 
-    init_pair(IMPASSABLE, COLOR_WHITE, COLOR_BLACK);
+    init_color(COLOR_RED, 1000, 0, 0);
+    init_pair(IMPASSABLE, COLOR_RED, COLOR_BLACK);
+
     init_color(COLOR_MAGENTA, 1000, 0, 1000);
     init_pair(START, COLOR_MAGENTA, COLOR_BLACK);
     init_pair(GOAL, COLOR_MAGENTA, COLOR_BLACK);
-    init_color(COLOR_RED, 1000, 0, 0);
-    init_pair(EXPLORED, COLOR_RED, COLOR_BLACK);
+
     init_color(COLOR_CYAN, 1000, 500, 0);
-    init_pair(QUEUE, COLOR_CYAN, COLOR_BLACK);
+    init_pair(EXPLORED, COLOR_CYAN, COLOR_BLACK);
+
+    init_color(COLOR_YELLOW, 1000, 1000, 0);
+    init_pair(QUEUE, COLOR_YELLOW, COLOR_BLACK);
+
     init_color(COLOR_GREEN, 0, 1000, 0);
     init_pair(PATH, COLOR_GREEN, COLOR_BLACK);
+
     init_color(COLOR_BLUE, 0, 0, 1000);
     init_pair(EXPLORE_PATH, COLOR_BLUE, COLOR_BLACK);
 
@@ -62,22 +68,27 @@ int main(int argc, char *argv[]) {
         chance = std::atof(argv[1]);
     } else if (argc == 3) {
         chance = std::atof(argv[1]);
-        height = std::atoi(argv[2]);
-        width = height;
+        width = std::atoi(argv[2]);
+        height = width;
     } else if (argc == 4) {
         chance = std::atof(argv[1]);
-        height = std::atoi(argv[2]);
-        width = std::atoi(argv[3]);
+        width = std::atoi(argv[2]);
+        height = std::atoi(argv[3]);
     }
     note_log << fmt::format("note: {}% fill rate and {}x{} grid\n", chance,
                             width, height);
 
     int x, y;
     getmaxyx(stdscr, y, x);
+    y -= 2;  // WARNING: update this when more status lines are added!
     if (width > x || height > y) {
-        note_log << "dimensions are too large\n";
-        std::cout << note_log.str();
-        return 1;
+        // std::cout << "\033[?1003l" << std::flush;  // restore sanity
+        // endwin();
+        note_log << fmt::format(
+            "dimensions are too large, snapping to max (too {}, max: {})\n",
+            width > x ? "wide" : "tall", width > x ? x : y);
+        width = x;
+        height = y;
     }
 
     render::init(height, width, curs_active, chance);

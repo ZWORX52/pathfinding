@@ -82,9 +82,23 @@ void draw() {
             // addch(world.translate(item));
         }
         // note_log << "\n";
-        row_idx++;
-        move(row_idx, 0);
+        move(++row_idx, 0);
     }
+    // show stats
+    astar::stats astar_stats = astar::get_stats();
+    if (astar::success) {
+        printw("astar: path length: %ld", astar_stats.path_length);
+        move(++row_idx, 0);
+    } else if (astar::done) {
+        printw("astar: no path found :(");
+        move(++row_idx, 0);
+    } else if (astar::path_display) {
+        printw("astar: explore path length: %ld",
+               astar_stats.explore_path_length);
+        move(++row_idx, 0);
+    }
+    printw("astar: nodes: %ld/%ld", astar_stats.explored_size, astar_stats.queue_size);
+    move(++row_idx, 0);
     move(last_mouse_y, last_mouse_x);
     refresh();
 }
@@ -104,6 +118,7 @@ bool input() {
             start_x = last_mouse_x;
             start_y = last_mouse_y;
             world[start_y][start_x] = START;
+            astar::change_start(astar::node(start_x, start_y));
             break;
         case 'g':
             // goal
@@ -111,10 +126,16 @@ bool input() {
             goal_x = last_mouse_x;
             goal_y = last_mouse_y;
             world[goal_y][goal_x] = GOAL;
+            astar::change_goal(astar::node(goal_x, goal_y));
             break;
         case 'p':
             // play/pause
             play = !play;
+            break;
+        case 'i':
+            // instant
+            while (!astar::tick()) {}
+            astar::term();
             break;
         case 'I':
             // initialize
@@ -123,9 +144,14 @@ bool input() {
             break;
         case 's':
             // step
-            if (astar::tick()) {
-                note_log << "note: astar: algorithm done\n";
+            if (astar::tick())
                 astar::term();
+            break;
+        case 'S':
+            // larger step
+            for (int i = 0; i < 5; i++) {
+                if (astar::tick())
+                    astar::term();
             }
             break;
         case 'T':
@@ -146,9 +172,15 @@ bool input() {
             break;
         case 'r':
             // full reset: reset astar and refill grid
+            // I can't use a fallthough to avoid code duplication here because
+            // we need to reset astar before being able to clear the world
+            astar::reset(world);
+            astar::init(astar::node(goal_x, goal_y),
+                        astar::node(start_x, start_y), world);
             world.clear(IMPASSABLE, PASSABLE);
             fill_random(chance);
-            // fallthrough
+            play = false;
+            break;
         case 'R':
             // partial reset: just reset astar
             astar::reset(world);
@@ -159,8 +191,8 @@ bool input() {
         case KEY_MOUSE:
             MEVENT mouse_event;
             if (getmouse(&mouse_event) == OK) {
-                    size_t mouse_event_x = mouse_event.x;
-                    size_t mouse_event_y = mouse_event.y;
+                size_t mouse_event_x = mouse_event.x;
+                size_t mouse_event_y = mouse_event.y;
                 if (mouse_event.bstate & BUTTON1_PRESSED) {
                     if (mouse_event_y < world.height() &&
                         mouse_event_x < world.width()) {
