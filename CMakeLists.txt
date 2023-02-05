@@ -10,4 +10,4 @@ add_executable(pathfinding main.cpp grid.cpp astar.cpp render.cpp)
 
 target_compile_options(pathfinding PRIVATE -Wall -Wextra -Werror -fdiagnostics-color)
 
-target_link_libraries(pathfinding ncurses spdlog fmt)
+target_link_libraries(pathfinding ncurses fmt)
