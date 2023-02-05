@@ -80,10 +80,8 @@ int main(int argc, char *argv[]) {
 
     int x, y;
     getmaxyx(stdscr, y, x);
-    y -= 2;  // WARNING: update this when more status lines are added!
+    y -= 3;  // WARNING: update this when more status lines are added!
     if (width > x || height > y) {
-        // std::cout << "\033[?1003l" << std::flush;  // restore sanity
-        // endwin();
         note_log << fmt::format(
             "dimensions are too large, snapping to max (too {}, max: {})\n",
             width > x ? "wide" : "tall", width > x ? x : y);

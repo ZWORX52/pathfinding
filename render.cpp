@@ -3,6 +3,9 @@
 #include "grid.hpp"
 #include "logs.hpp"
 
+#include <chrono>
+#include <fmt/core.h>
+#include <limits>
 #include <map>
 #include <ncurses.h>
 #include <pcg_random.hpp>
@@ -21,6 +24,7 @@ namespace render {
 const std::map<int, char> translation{
     {PASSABLE, ' '}, {IMPASSABLE, '#'}, {START, ':'}, {GOAL, '!'},
     {EXPLORED, '.'}, {QUEUE, ','},      {PATH, '*'},  {EXPLORE_PATH, '~'}};
+constexpr int STATUS_COLUMN_WIDTH = 40;
 
 grid<int> world(1, 1);
 
@@ -29,6 +33,7 @@ int start_x, start_y;
 int last_mouse_x = 0, last_mouse_y = 0;
 bool play = false;
 int curs_active;
+int height, width;
 
 double chance;
 
@@ -49,16 +54,22 @@ void fill_random(double chance) {
     }
 }
 
-void init(int height, int width, int _curs_active, double _chance) {
-    world = grid<int>(height, width);
+std::vector<std::chrono::nanoseconds::rep> frame_times;
+std::vector<std::chrono::nanoseconds::rep> frame_times_staging;
+int frame_no;
+int frame_nos;
+bool ready_for_stats = false;
+
+void init(int _height, int _width, int _curs_active, double _chance) {
+    world = grid<int>(_height, _width);
     world.set_translation(translation);
 
     goal_x = 1;
     goal_y = 1;
     world[goal_x][goal_y] = 3;
 
-    start_x = width - 2;
-    start_y = height - 2;
+    start_x = _width - 2;
+    start_y = _height - 2;
     world[start_y][start_x] = 2;
 
     curs_active = _curs_active;
@@ -68,6 +79,17 @@ void init(int height, int width, int _curs_active, double _chance) {
 
     chance = _chance;
     fill_random(chance);
+    height = _height;
+    width = _width;
+
+    frame_nos = 2000;
+    frame_times = std::vector<std::chrono::nanoseconds::rep>(frame_nos);
+    frame_times_staging = std::vector<std::chrono::nanoseconds::rep>(frame_nos);
+}
+
+void status_message(const std::string &message, const int row,
+                    const int column) {
+    mvprintw(height + row, STATUS_COLUMN_WIDTH * column, "%s", message.c_str());
 }
 
 void draw() {
@@ -78,27 +100,98 @@ void draw() {
             attron(COLOR_PAIR(item));
             printw("%c", world.translate(item));
             attroff(COLOR_PAIR(item));
-            // note_log << world.translate(item);
-            // addch(world.translate(item));
         }
-        // note_log << "\n";
         move(++row_idx, 0);
     }
     // show stats
     astar::stats astar_stats = astar::get_stats();
     if (astar::success) {
-        printw("astar: path length: %ld", astar_stats.path_length);
-        move(++row_idx, 0);
+        status_message(
+            fmt::format("astar: path length: {}", astar_stats.path_length), 0,
+            0);
     } else if (astar::done) {
-        printw("astar: no path found :(");
-        move(++row_idx, 0);
+        status_message("astar: no path found :(", 0, 0);
     } else if (astar::path_display) {
-        printw("astar: explore path length: %ld",
-               astar_stats.explore_path_length);
-        move(++row_idx, 0);
+        status_message(fmt::format("astar: exploring, explore path length: {}",
+                                   astar_stats.explore_path_length),
+                       0, 0);
+    } else if (astar_stats.explored_size > 0) {
+        status_message("astar: exploring", 0, 0);
     }
-    printw("astar: nodes: %ld/%ld", astar_stats.explored_size, astar_stats.queue_size);
-    move(++row_idx, 0);
+    status_message(fmt::format("astar: nodes: {}/{}", astar_stats.explored_size,
+                               astar_stats.queue_size),
+                   1, 0);
+
+    static auto last_render = std::chrono::high_resolution_clock::now();
+    auto frame_duration =
+        std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::high_resolution_clock::now() - last_render)
+            .count();
+    // frame_times_staging.at(frame_no++) = frame_duration;
+    // if (frame_no == frame_nos) {
+    //     // done staging, apply changes to frame_times
+    //     frame_times = frame_times_staging;
+    //     frame_times_staging =
+    //         std::vector<std::chrono::nanoseconds::rep>(frame_nos);
+    //     frame_no = 0;
+    //     ready_for_stats = true;
+    // }
+    static auto last_stats_update = std::chrono::system_clock::now();
+    frame_times_staging.push_back(frame_duration);
+    {
+        using namespace std::chrono_literals;
+        if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - last_stats_update) >= 1s) {
+            frame_times = frame_times_staging;
+            frame_times_staging.clear();
+            last_stats_update = std::chrono::system_clock::now();
+            ready_for_stats = true;
+        }
+    }
+    last_render = std::chrono::high_resolution_clock::now();
+
+    status_message(fmt::format("render: frame: {:>8.3f}ms ({:>7.3f}fps)",
+                               frame_duration / 1000.0,
+                               1.0 / ((double)frame_duration / std::nano::den)),
+                   2, 0);
+
+    if (ready_for_stats) {
+        status_message(fmt::format("render: frame data over last {} frames",
+                                   frame_times.size()),
+                       0, 1);
+
+        double max_ms = 0.0, avg_ms = 0.0,
+               min_ms = std::numeric_limits<double>::max(), max_fps = 0.0,
+               avg_fps = 0.0, min_fps = std::numeric_limits<double>::max();
+        for (const auto &frame_time : frame_times) {
+            if (frame_time == 0)
+                continue;
+            double frame_time_ms = frame_time / 1000.0;
+            if (frame_time_ms > max_ms)
+                max_ms = frame_time_ms;
+            avg_ms += frame_time_ms;
+            if (frame_time_ms < min_ms)
+                min_ms = frame_time_ms;
+
+            double fps = 1.0 / (frame_time_ms / std::micro::den);
+            if (fps > max_fps)
+                max_fps = fps;
+            avg_fps += fps;
+            if (fps < min_fps)
+                min_fps = fps;
+        }
+        avg_ms /= frame_times.size();
+        avg_fps /= frame_times.size();
+        status_message(
+            fmt::format(
+                "render: frame times: max {:>8.3f} avg {:>8.3f} min {:>8.3f}",
+                max_ms, avg_ms, min_ms),
+            1, 1);
+        status_message(
+            fmt::format(
+                "render: fps:         max {:>8.3f} avg {:>8.3f} min {:>8.3f}",
+                max_fps, avg_fps, min_fps),
+            2, 1);
+    }
     move(last_mouse_y, last_mouse_x);
     refresh();
 }
@@ -134,7 +227,8 @@ bool input() {
             break;
         case 'i':
             // instant
-            while (!astar::tick()) {}
+            while (!astar::tick()) {
+            }
             astar::term();
             break;
         case 'I':
