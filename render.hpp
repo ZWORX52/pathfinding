@@ -1,7 +1,3 @@
-#include "logs.hpp"
-
-#include <map>
-
 extern const int PASSABLE;
 extern const int IMPASSABLE;
 extern const int START;

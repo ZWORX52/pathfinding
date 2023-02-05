@@ -1,7 +1,9 @@
 #include "render.hpp"
 #include "astar.hpp"
 #include "grid.hpp"
+#include "logs.hpp"
 
+#include <map>
 #include <ncurses.h>
 #include <pcg_random.hpp>
 #include <random>
@@ -157,9 +159,11 @@ bool input() {
         case KEY_MOUSE:
             MEVENT mouse_event;
             if (getmouse(&mouse_event) == OK) {
+                    size_t mouse_event_x = mouse_event.x;
+                    size_t mouse_event_y = mouse_event.y;
                 if (mouse_event.bstate & BUTTON1_PRESSED) {
-                    if (mouse_event.y < world.height() &&
-                        mouse_event.x < world.width()) {
+                    if (mouse_event_y < world.height() &&
+                        mouse_event_x < world.width()) {
                         int &clicked = world[mouse_event.y][mouse_event.x];
                         if (clicked == PASSABLE)
                             clicked = IMPASSABLE;
@@ -168,12 +172,12 @@ bool input() {
                 } else if (mouse_event.bstate & BUTTON1_RELEASED) {
                     dragging_impassable = false;
                 } else if (mouse_event.bstate & BUTTON2_PRESSED) {
-                    last_mouse_x = mouse_event.x;
-                    last_mouse_y = mouse_event.y;
+                    last_mouse_x = mouse_event_x;
+                    last_mouse_y = mouse_event_y;
                 } else if (mouse_event.bstate & BUTTON3_PRESSED) {
-                    if (mouse_event.y < world.height() &&
-                        mouse_event.x < world.width()) {
-                        int &clicked = world[mouse_event.y][mouse_event.x];
+                    if (mouse_event_y < world.height() &&
+                        mouse_event_x < world.width()) {
+                        int &clicked = world[mouse_event_y][mouse_event_x];
                         if (clicked == IMPASSABLE)
                             clicked = PASSABLE;
                         dragging_passable = true;
@@ -181,11 +185,13 @@ bool input() {
                 } else if (mouse_event.bstate & BUTTON3_RELEASED) {
                     dragging_passable = false;
                 } else if (mouse_event.bstate & REPORT_MOUSE_POSITION) {
-                    if (mouse_event.y < world.height() &&
-                        mouse_event.x < world.width()) {
-                        int &clicked = world[mouse_event.y][mouse_event.x];
-                        if (dragging_impassable && clicked == PASSABLE) clicked = IMPASSABLE;
-                        else if (dragging_passable && clicked == IMPASSABLE) clicked = PASSABLE;
+                    if (mouse_event_y < world.height() &&
+                        mouse_event_x < world.width()) {
+                        int &clicked = world[mouse_event_y][mouse_event_x];
+                        if (dragging_impassable && clicked == PASSABLE)
+                            clicked = IMPASSABLE;
+                        else if (dragging_passable && clicked == IMPASSABLE)
+                            clicked = PASSABLE;
                     }
                 }
             }
