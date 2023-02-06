@@ -12,15 +12,13 @@
 #include "logs.hpp"
 #include "render.hpp"
 
+// this is here because it's too little to be included in its own .cpp file
 std::stringstream note_log;
 
 int main(int argc, char *argv[]) {
     // TODO
     // TODO spdlog
     // TODO
-
-    int height = 500, width = 500;
-    double chance = 40.0;
 
     initscr();
     if (!has_colors()) {
@@ -63,9 +61,14 @@ int main(int argc, char *argv[]) {
     int prev_curs_mode = curs_set(1);
     int curs_active = 1;
 
+    int height = 75, width = 150;
+    double chance = 40.0;
+    bool user_input = true;
+
     if (argc == 1) {
     } else if (argc == 2) {
         chance = std::atof(argv[1]);
+        user_input = false;
     } else if (argc == 3) {
         chance = std::atof(argv[1]);
         width = std::atoi(argv[2]);
@@ -75,19 +78,20 @@ int main(int argc, char *argv[]) {
         width = std::atoi(argv[2]);
         height = std::atoi(argv[3]);
     }
-    note_log << fmt::format("note: {}% fill rate and {}x{} grid\n", chance,
-                            width, height);
-
+    
     int x, y;
     getmaxyx(stdscr, y, x);
     y -= 3;  // WARNING: update this when more status lines are added!
-    if (width > x || height > y) {
-        note_log << fmt::format(
-            "dimensions are too large, snapping to max (too {}, max: {})\n",
-            width > x ? "wide" : "tall", width > x ? x : y);
+    if (!user_input) {
+        width = x;
+        height = y;
+    } else if (width > x || height > y) {
+        note_log << "dimensions are too large, snapping to max dimensions\n";
         width = x;
         height = y;
     }
+    note_log << fmt::format("note: {}% fill rate and {}x{} grid\n", chance,
+                            width, height);
 
     render::init(height, width, curs_active, chance);
 
