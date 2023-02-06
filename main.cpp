@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
     // TODO spdlog
     // TODO
 
-    int height = 40, width = 80;
+    int height = 500, width = 500;
     double chance = 40.0;
 
     initscr();
