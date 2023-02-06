@@ -97,21 +97,21 @@ void draw() {
     // show stats
     status_message("astar:", 0, 0);
     astar::stats astar_stats = astar::get_stats();
+    status_message(fmt::format("nodes: {}/{}", astar_stats.explored_size,
+                               astar_stats.queue_size),
+                   1, 0);
     if (astar::success) {
         status_message(fmt::format("path length: {}", astar_stats.path_length),
-                       1, 0);
+                       2, 0);
     } else if (astar::done) {
-        status_message("no path found :(", 1, 0);
+        status_message("no path found :(", 2, 0);
     } else if (astar::path_display) {
         status_message(fmt::format("exploring, explore path length: {}",
                                    astar_stats.explore_path_length),
-                       1, 0);
+                       2, 0);
     } else if (astar_stats.explored_size > 0) {
-        status_message("exploring", 1, 0);
+        status_message("exploring", 2, 0);
     }
-    status_message(fmt::format("nodes: {}/{}", astar_stats.explored_size,
-                               astar_stats.queue_size),
-                   2, 0);
 
     static auto last_render = std::chrono::high_resolution_clock::now();
     auto frame_duration =
