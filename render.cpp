@@ -156,8 +156,8 @@ void draw() {
         // max ms is 10.3f because when using `i`, i've seen up to 100 ms :O
 
         status_message(
-            fmt::format("frame took {:>8.3f}ns ({:>10.3f}/{:>8.3f}/{:>8.3f})",
-                        frame_duration / 1000000.0, max_ms, avg_ms, min_ms),
+            fmt::format("frame took {:>8.3f}us ({:>10.3f}/{:>8.3f}/{:>8.3f})",
+                        frame_duration / 1000.0, max_ms, avg_ms, min_ms),
             1, 1);
         status_message(
             fmt::format("running at {:>8.3f} fps ({:>8.3f}/{:>8.3f}/{:>8.3f})",
@@ -166,8 +166,8 @@ void draw() {
             2, 1);
     } else {
         status_message(
-            fmt::format("frame took {:>8.3f}ms (waiting for stats...)",
-                        frame_duration / 1000000.0),
+            fmt::format("frame took {:>8.3f}us (waiting for stats...)",
+                        frame_duration / 100.0),
             1, 1);
         status_message(
             fmt::format("running at {:>7.3f} fps (waiting for stats...)",
