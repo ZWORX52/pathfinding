@@ -54,9 +54,8 @@ void fill_random(double chance) {
     }
 }
 
-std::vector<std::chrono::nanoseconds::rep> frame_times;
-std::vector<std::chrono::nanoseconds::rep> frame_times_staging;
-int frame_no;
+std::vector<double> frame_times;
+std::vector<double> frame_times_staging;
 int frame_nos;
 bool ready_for_stats = false;
 
@@ -82,9 +81,9 @@ void init(int _height, int _width, int _curs_active, double _chance) {
     height = _height;
     width = _width;
 
-    frame_nos = 2000;
-    frame_times = std::vector<std::chrono::nanoseconds::rep>(frame_nos);
-    frame_times_staging = std::vector<std::chrono::nanoseconds::rep>(frame_nos);
+    frame_nos = 1;
+    frame_times = std::vector<double>(frame_nos);
+    frame_times_staging = std::vector<double>(frame_nos);
 }
 
 void status_message(const std::string &message, const int row,
@@ -114,16 +113,16 @@ void draw() {
     }
 
     static auto last_render = std::chrono::high_resolution_clock::now();
-    auto frame_duration =
+    double frame_duration =
         std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::high_resolution_clock::now() - last_render)
             .count();
     static auto last_stats_update = std::chrono::system_clock::now();
     frame_times_staging.push_back(frame_duration);
+
     {
         using namespace std::chrono_literals;
-        if (std::chrono::duration_cast<std::chrono::milliseconds>(
-                std::chrono::system_clock::now() - last_stats_update) >= 1s) {
+        if (std::chrono::system_clock::now() - last_stats_update >= 1s) {
             frame_times = frame_times_staging;
             frame_times_staging.clear();
             last_stats_update = std::chrono::system_clock::now();
@@ -137,17 +136,15 @@ void draw() {
         double max_ms = 0.0, avg_ms = 0.0,
                min_ms = std::numeric_limits<double>::max(), max_fps = 0.0,
                avg_fps = 0.0, min_fps = std::numeric_limits<double>::max();
-        for (const auto &frame_time : frame_times) {
-            if (frame_time == 0)
-                continue;
-            double frame_time_ms = frame_time / 1000.0;
+        for (const auto &this_frame_time : frame_times) {
+            double frame_time_ms = this_frame_time / 1000000.0;
             if (frame_time_ms > max_ms)
                 max_ms = frame_time_ms;
             avg_ms += frame_time_ms;
             if (frame_time_ms < min_ms)
                 min_ms = frame_time_ms;
 
-            double fps = 1.0 / (frame_time_ms / std::micro::den);
+            double fps = 1.0 / (frame_time_ms / std::milli::den);
             if (fps > max_fps)
                 max_fps = fps;
             avg_fps += fps;
@@ -156,25 +153,25 @@ void draw() {
         }
         avg_ms /= frame_times.size();
         avg_fps /= frame_times.size();
+        // max ms is 10.3f because when using `i`, i've seen up to 100 ms :O
+
         status_message(
-            fmt::format("frame took {:>8.3f}ms ({:>8.3f}/{:>8.3f}/{:>8.3f})",
-                        frame_duration / 1000.0, max_ms, avg_ms, min_ms),
+            fmt::format("frame took {:>8.3f}ns ({:>10.3f}/{:>8.3f}/{:>8.3f})",
+                        frame_duration / 1000000.0, max_ms, avg_ms, min_ms),
             1, 1);
         status_message(
-            fmt::format(
-                "running at {:>7.3f} fps ({:>7.3f}/{:>7.3f}/{:>7.3f})",
-                1.0 / (static_cast<double>(frame_duration) / std::nano::den),
-                max_fps, avg_fps, min_fps),
+            fmt::format("running at {:>8.3f} fps ({:>8.3f}/{:>8.3f}/{:>8.3f})",
+                        1.0 / (frame_duration / std::nano::den), max_fps,
+                        avg_fps, min_fps),
             2, 1);
     } else {
         status_message(
             fmt::format("frame took {:>8.3f}ms (waiting for stats...)",
-                        frame_duration / 1000.0),
+                        frame_duration / 1000000.0),
             1, 1);
         status_message(
-            fmt::format(
-                "running at {:>7.3f} fps (waiting for stats...)",
-                1.0 / (static_cast<double>(frame_duration) / std::nano::den)),
+            fmt::format("running at {:>7.3f} fps (waiting for stats...)",
+                        1.0 / (frame_duration / std::nano::den)),
             2, 1);
     }
     int row_idx = 3;
@@ -280,8 +277,10 @@ bool input() {
         case KEY_MOUSE:
             MEVENT mouse_event;
             if (getmouse(&mouse_event) == OK) {
+                // WARNING: change this as well, when you change the number of
+                // status lines!
                 size_t mouse_event_x = mouse_event.x;
-                size_t mouse_event_y = mouse_event.y;
+                size_t mouse_event_y = mouse_event.y - 3;
                 if (mouse_event.bstate & BUTTON1_PRESSED) {
                     if (mouse_event_y < world.height() &&
                         mouse_event_x < world.width()) {

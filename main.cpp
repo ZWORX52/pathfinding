@@ -66,6 +66,7 @@ int main(int argc, char *argv[]) {
     bool user_input = true;
 
     if (argc == 1) {
+        user_input = false;
     } else if (argc == 2) {
         chance = std::atof(argv[1]);
         user_input = false;
