@@ -13,4 +13,4 @@ this will be a collection of pathfinding algorithms that you can interact with i
 
 feel free to contribute! if you have a guess as to what the next performance bottleneck is, please file an issue; if you want to fix it, go right ahead :D
 
-please note that if you want cmake to emit a debugging-friendly makefile, just specify `--preset debug` in the cmake command, and you can just `ninja` away.
+please note that if you want cmake to emit a debugging-friendly build file, just specify `--preset debug` in the cmake command, and you can just `ninja` away.
