@@ -9,6 +9,8 @@ extern const int QUEUE;
 extern const int PATH;
 extern const int EXPLORE_PATH;
 
+extern const int STATUS_LINES;
+
 namespace render {
 // contains all the code needed for rendering the grid and managing the
 // pathfinding algorithms

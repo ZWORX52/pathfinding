@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
     
     int x, y;
     getmaxyx(stdscr, y, x);
-    y -= 3;  // WARNING: update this when more status lines are added!
+    y -= STATUS_LINES;
     if (!user_input) {
         width = x;
         height = y;

@@ -20,6 +20,8 @@ const int QUEUE = 5;
 const int PATH = 6;
 const int EXPLORE_PATH = 7;
 
+const int STATUS_LINES = 3;
+
 namespace render {
 const std::map<int, char> translation{
     {PASSABLE, ' '}, {IMPASSABLE, '#'}, {START, ':'}, {GOAL, '!'},
@@ -137,14 +139,14 @@ void draw() {
                min_ms = std::numeric_limits<double>::max(), max_fps = 0.0,
                avg_fps = 0.0, min_fps = std::numeric_limits<double>::max();
         for (const auto &this_frame_time : frame_times) {
-            double frame_time_ms = this_frame_time / 1000000.0;
+            double frame_time_ms = this_frame_time / 1000.0;
             if (frame_time_ms > max_ms)
                 max_ms = frame_time_ms;
             avg_ms += frame_time_ms;
             if (frame_time_ms < min_ms)
                 min_ms = frame_time_ms;
 
-            double fps = 1.0 / (frame_time_ms / std::milli::den);
+            double fps = 1.0 / (frame_time_ms / std::micro::den);
             if (fps > max_fps)
                 max_fps = fps;
             avg_fps += fps;
@@ -167,7 +169,7 @@ void draw() {
     } else {
         status_message(
             fmt::format("frame took {:>8.3f}us (waiting for stats...)",
-                        frame_duration / 100.0),
+                        frame_duration / 1000.0),
             1, 1);
         status_message(
             fmt::format("running at {:>7.3f} fps (waiting for stats...)",
@@ -201,7 +203,7 @@ bool input() {
             // from
             world[start_y][start_x] = PASSABLE;
             start_x = last_mouse_x;
-            start_y = last_mouse_y;
+            start_y = last_mouse_y - STATUS_LINES;
             world[start_y][start_x] = START;
             astar::change_start(astar::node(start_x, start_y));
             break;
@@ -209,7 +211,7 @@ bool input() {
             // goal
             world[goal_y][goal_x] = PASSABLE;
             goal_x = last_mouse_x;
-            goal_y = last_mouse_y;
+            goal_y = last_mouse_y - STATUS_LINES;
             world[goal_y][goal_x] = GOAL;
             astar::change_goal(astar::node(goal_x, goal_y));
             break;
@@ -277,14 +279,12 @@ bool input() {
         case KEY_MOUSE:
             MEVENT mouse_event;
             if (getmouse(&mouse_event) == OK) {
-                // WARNING: change this as well, when you change the number of
-                // status lines!
                 size_t mouse_event_x = mouse_event.x;
-                size_t mouse_event_y = mouse_event.y - 3;
+                size_t mouse_event_y = mouse_event.y - STATUS_LINES;
                 if (mouse_event.bstate & BUTTON1_PRESSED) {
                     if (mouse_event_y < world.height() &&
                         mouse_event_x < world.width()) {
-                        int &clicked = world[mouse_event.y][mouse_event.x];
+                        int &clicked = world[mouse_event_y][mouse_event_x];
                         if (clicked == PASSABLE)
                             clicked = IMPASSABLE;
                         dragging_impassable = true;
@@ -292,8 +292,8 @@ bool input() {
                 } else if (mouse_event.bstate & BUTTON1_RELEASED) {
                     dragging_impassable = false;
                 } else if (mouse_event.bstate & BUTTON2_PRESSED) {
-                    last_mouse_x = mouse_event_x;
-                    last_mouse_y = mouse_event_y;
+                    last_mouse_x = mouse_event.x;
+                    last_mouse_y = mouse_event.y;
                 } else if (mouse_event.bstate & BUTTON3_PRESSED) {
                     if (mouse_event_y < world.height() &&
                         mouse_event_x < world.width()) {
