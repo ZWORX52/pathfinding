@@ -4,6 +4,7 @@
 #include "grid.hpp"
 
 #include <compare>
+#include <functional>
 
 namespace astar {
 class node {

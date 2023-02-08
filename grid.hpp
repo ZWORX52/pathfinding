@@ -18,7 +18,9 @@ template <typename T> class grid {
         data = std::vector<std::vector<T>>(height, std::vector<T>(width));
     }
 
-    [[nodiscard]] inline std::vector<T> &operator[](size_t idx) { return data[idx]; }
+    [[nodiscard]] inline std::vector<T> &operator[](size_t idx) {
+        return data[idx];
+    }
 
     friend std::ostream &operator<<(std::ostream &os, const grid<T> &obj) {
         for (const std::vector<T> &row : obj.data) {
@@ -37,6 +39,7 @@ template <typename T> class grid {
 
     auto begin() { return std::begin(data); }
     auto end() { return std::end(data); }
+    inline auto size() const { return data.size(); }
 
     inline size_t height() { return data.size(); }
     inline size_t width() { return data.at(0).size(); }

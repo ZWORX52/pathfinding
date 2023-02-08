@@ -16,6 +16,7 @@ namespace render {
 // pathfinding algorithms
 extern bool play;
 
+void update(int x, int y, int new_val);
 void init(int height, int width, int _curs_active, double chance);
 bool input();
 void draw();

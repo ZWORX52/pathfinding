@@ -97,7 +97,8 @@ void display_path() {
     while (cur != nullptr) {
         int &grid_square = (*current_grid)[cur->y()][cur->x()];
         if (grid_square == EXPLORED)
-            grid_square = EXPLORE_PATH;
+            // grid_square = EXPLORE_PATH;
+            render::update(cur->x(), cur->y(), EXPLORE_PATH);
         explore_path_length++;
         cur = cur->parent();
     }
@@ -114,7 +115,12 @@ bool tick() {
         return true;
     }
 
-    current_grid->clear(EXPLORE_PATH, EXPLORED);
+    for (size_t i = 0; i < current_grid->size(); i++) {
+        for (size_t j = 0; j < (*current_grid)[i].size(); j++) {
+            if ((*current_grid)[i][j] == EXPLORE_PATH)
+                render::update(j, i, EXPLORED);
+        }
+    }
     {
         node cur = queue.back();
         if (cur.x() == goal.x() && cur.y() == goal.y()) {
@@ -128,7 +134,8 @@ bool tick() {
 
     node *cur = &visited.front();
     if ((*current_grid)[cur->y()][cur->x()] != START)
-        (*current_grid)[cur->y()][cur->x()] = EXPLORED;
+        // (*current_grid)[cur->y()][cur->x()] = EXPLORED;
+        render::update(cur->x(), cur->y(), EXPLORED);
 
     static const std::pair<int, int> dirs[8] = {
         {-1, 0}, {0, -1}, {1, 0}, {0, 1}, {-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
@@ -142,7 +149,8 @@ bool tick() {
             int &cur_square = (*current_grid)[newy][newx];
             if (cur_square == PASSABLE || cur_square == GOAL) {
                 if (cur_square == PASSABLE)
-                    (*current_grid)[newy][newx] = QUEUE;
+                    // (*current_grid)[newy][newx] = QUEUE;
+                    render::update(newx, newy, QUEUE);
                 queue.push_back(node(newx, newy, goal, cur));
             }
         }
@@ -161,7 +169,8 @@ void backtrack(grid<int> &world) {
     while (current != nullptr) {
         int &grid_square = world[current->y()][current->x()];
         if (grid_square == EXPLORED)
-            grid_square = PATH;
+            // grid_square = PATH;
+            render::update(current->x(), current->y(), PATH);
         path_length++;
         current = current->parent();
     }

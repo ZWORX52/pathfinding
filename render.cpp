@@ -61,6 +61,22 @@ std::vector<double> frame_times_staging;
 int frame_nos;
 bool ready_for_stats = false;
 
+struct _update {
+    int x, y;
+    int new_val;
+};
+bool lazy_updates;
+std::vector<_update> updates;
+
+inline void update(int x, int y, int new_val) {
+    if (!lazy_updates) {
+        world[y][x] = new_val;
+        return;
+    }
+    updates.push_back(_update{x, y, new_val});
+    world[y][x] = new_val;
+}
+
 void init(int _height, int _width, int _curs_active, double _chance) {
     world = grid<int>(_height, _width);
     world.set_translation(translation);
@@ -86,6 +102,17 @@ void init(int _height, int _width, int _curs_active, double _chance) {
     frame_nos = 1;
     frame_times = std::vector<double>(frame_nos);
     frame_times_staging = std::vector<double>(frame_nos);
+
+    updates = std::vector<_update>();
+
+    int row_idx = STATUS_LINES;
+    for (const auto &row : world) {
+        move(row_idx++, 0);
+        for (const auto &item : row) {
+            attron(COLOR_PAIR(item));
+            addch(world.translate(item));
+        }
+    }
 }
 
 void status_message(const std::string &message, const int row,
@@ -94,7 +121,7 @@ void status_message(const std::string &message, const int row,
 }
 
 void draw() {
-    erase();
+    // erase();
     // show stats
     status_message("astar:", 0, 0);
     astar::stats astar_stats = astar::get_stats();
@@ -176,16 +203,25 @@ void draw() {
                         1.0 / (frame_duration / std::nano::den)),
             2, 1);
     }
-    int row_idx = 3;
-    move(row_idx, 0);
-    for (const auto &row : world) {
-        for (const auto &item : row) {
-            attron(COLOR_PAIR(item));
-            printw("%c", world.translate(item));
-            attroff(COLOR_PAIR(item));
+    if (!lazy_updates) {
+        int row_idx = STATUS_LINES;
+        for (const auto &row : world) {
+            move(row_idx++, 0);
+            for (const auto &item : row) {
+                attron(COLOR_PAIR(item));
+                addch(world.translate(item));
+            }
         }
-        move(++row_idx, 0);
+        lazy_updates = true;
+    } else {
+        for (const auto &this_update : updates) {
+            attron(COLOR_PAIR(this_update.new_val));
+            mvaddch(this_update.y + STATUS_LINES, this_update.x,
+                    world.translate(this_update.new_val));
+        }
+        updates.clear();
     }
+    standend();  // disable whatever color attribute was used
     move(last_mouse_y, last_mouse_x);
     refresh();
 }
@@ -206,6 +242,7 @@ bool input() {
             start_y = last_mouse_y - STATUS_LINES;
             world[start_y][start_x] = START;
             astar::change_start(astar::node(start_x, start_y));
+            update(goal_x, goal_y, START);
             break;
         case 'g':
             // goal
@@ -214,6 +251,7 @@ bool input() {
             goal_y = last_mouse_y - STATUS_LINES;
             world[goal_y][goal_x] = GOAL;
             astar::change_goal(astar::node(goal_x, goal_y));
+            update(goal_x, goal_y, GOAL);
             break;
         case 'p':
             // play/pause
@@ -268,6 +306,7 @@ bool input() {
             world.clear(IMPASSABLE, PASSABLE);
             fill_random(chance);
             play = false;
+            lazy_updates = false;
             break;
         case 'R':
             // partial reset: just reset astar
