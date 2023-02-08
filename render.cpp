@@ -191,11 +191,11 @@ void draw() {
     // max ms is 10.3f because when using `i`, i've seen up to 100 ms :O
 
     status_message(
-        fmt::format("frame took {:>8.3f}us ({:>10.3f}/{:>8.3f}/{:>8.3f})",
+        fmt::format("frame took {:.3f}us ({:.3f}/{:.3f}/{:.3f})",
                     frame_duration / 1000.0, max_ms, avg_ms, min_ms),
         1, 1);
     status_message(
-        fmt::format("running at {:>8.3f} fps ({:>8.3f}/{:>8.3f}/{:>8.3f})",
+        fmt::format("running at {:.3f} fps ({:.3f}/{:.3f}/{:.3f})",
                     1.0 / (frame_duration / std::nano::den), max_fps, avg_fps,
                     min_fps),
         2, 1);
@@ -321,7 +321,7 @@ bool input() {
                         mouse_event_x < world.width()) {
                         int &clicked = world[mouse_event_y][mouse_event_x];
                         if (clicked == PASSABLE)
-                            clicked = IMPASSABLE;
+                            update(mouse_event_x, mouse_event_y, IMPASSABLE);
                         dragging_impassable = true;
                     }
                 } else if (mouse_event.bstate & BUTTON1_RELEASED) {
@@ -334,7 +334,7 @@ bool input() {
                         mouse_event_x < world.width()) {
                         int &clicked = world[mouse_event_y][mouse_event_x];
                         if (clicked == IMPASSABLE)
-                            clicked = PASSABLE;
+                            update(mouse_event_x, mouse_event_y, PASSABLE);
                         dragging_passable = true;
                     }
                 } else if (mouse_event.bstate & BUTTON3_RELEASED) {
@@ -344,9 +344,9 @@ bool input() {
                         mouse_event_x < world.width()) {
                         int &clicked = world[mouse_event_y][mouse_event_x];
                         if (dragging_impassable && clicked == PASSABLE)
-                            clicked = IMPASSABLE;
+                            update(mouse_event_x, mouse_event_y, IMPASSABLE);
                         else if (dragging_passable && clicked == IMPASSABLE)
-                            clicked = PASSABLE;
+                            update(mouse_event_x, mouse_event_y, PASSABLE);
                     }
                 }
             }
