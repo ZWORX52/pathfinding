@@ -231,7 +231,7 @@ bool input() {
         switch (input) {
         case 'q':
             return true;
-        case 'f':
+        case 'F':
             // from
             world[start_y][start_x] = PASSABLE;
             start_x = last_mouse_x;
@@ -240,7 +240,7 @@ bool input() {
             astar::change_start(astar::node(start_x, start_y));
             update(goal_x, goal_y, START);
             break;
-        case 'g':
+        case 'T':
             // goal
             world[goal_y][goal_x] = PASSABLE;
             goal_x = last_mouse_x;
@@ -255,14 +255,10 @@ bool input() {
             break;
         case 'i':
             // instant
+            if (astar::done) break;
             while (!astar::tick()) {
             }
             astar::term();
-            break;
-        case 'I':
-            // initialize
-            astar::init(astar::node(goal_x, goal_y),
-                        astar::node(start_x, start_y), world);
             break;
         case 's':
             // step
@@ -276,17 +272,10 @@ bool input() {
                     astar::term();
             }
             break;
-        case 'T':
-            // terminate
-            astar::term();
-            break;
         case 'c':
             // clear board
             world.clear(IMPASSABLE, PASSABLE);
-            break;
-        case 'B':
-            // backtrack
-            astar::backtrack(world);
+            lazy_updates = false;
             break;
         case 'd':
             // toggle displaying path
@@ -310,6 +299,7 @@ bool input() {
             astar::init(astar::node(goal_x, goal_y),
                         astar::node(start_x, start_y), world);
             play = false;
+            lazy_updates = false;
             break;
         case KEY_MOUSE:
             MEVENT mouse_event;
