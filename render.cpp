@@ -71,6 +71,8 @@ void update(int x, int y, int new_val) {
         world[y][x] = new_val;
         return;
     }
+    if (world[y][x] == new_val)
+        return;
     updates.push_back(_update{x, y, new_val});
     world[y][x] = new_val;
 }
@@ -113,7 +115,7 @@ void init(int _height, int _width, int _curs_active, double _chance) {
 }
 
 inline void status_message(const std::string &message, const int row,
-                    const int column) {
+                           const int column) {
     mvprintw(row, STATUS_COLUMN_WIDTH * column, "%s", message.c_str());
 }
 
@@ -125,7 +127,7 @@ inline void erase_status() {
 }
 
 void draw() {
-    // erase();
+    curs_set(0);
     erase_status();
     // show stats
     status_message("astar:", 0, 0);
@@ -154,13 +156,12 @@ void draw() {
     static auto last_stats_update = std::chrono::system_clock::now();
     frame_times.push_back(frame_duration);
 
-    static double max_ms = 0.0, avg_ms = 0.0,
-                  min_ms = 0.0, max_fps = 0.0,
+    static double max_ms = 0.0, avg_ms = 0.0, min_ms = 0.0, max_fps = 0.0,
                   avg_fps = 0.0, min_fps = 0.0;
 
     {
         using namespace std::chrono_literals;
-        if (std::chrono::system_clock::now() - last_stats_update >= 1s) {
+        if (std::chrono::system_clock::now() - last_stats_update >= 3s) {
             last_stats_update = std::chrono::system_clock::now();
 
             max_ms = 0.0, avg_ms = 0.0, min_ms = frame_times[0], max_fps = 0.0,
@@ -190,15 +191,13 @@ void draw() {
     status_message("render:", 0, 1);
     // max ms is 10.3f because when using `i`, i've seen up to 100 ms :O
 
-    status_message(
-        fmt::format("frame took {:.3f}us ({:.3f}/{:.3f}/{:.3f})",
-                    frame_duration / 1000.0, max_ms, avg_ms, min_ms),
-        1, 1);
-    status_message(
-        fmt::format("running at {:.3f} fps ({:.3f}/{:.3f}/{:.3f})",
-                    1.0 / (frame_duration / std::nano::den), max_fps, avg_fps,
-                    min_fps),
-        2, 1);
+    status_message(fmt::format("frame took {:.3f}us ({:.3f}/{:.3f}/{:.3f})",
+                               frame_duration / 1000.0, max_ms, avg_ms, min_ms),
+                   1, 1);
+    status_message(fmt::format("running at {:.3f} fps ({:.3f}/{:.3f}/{:.3f})",
+                               1.0 / (frame_duration / std::nano::den), max_fps,
+                               avg_fps, min_fps),
+                   2, 1);
     if (!lazy_updates) {
         int row_idx = STATUS_LINES;
         for (const auto &row : world) {
@@ -219,6 +218,7 @@ void draw() {
     }
     standend();  // disable whatever color attribute was used
     move(last_mouse_y, last_mouse_x);
+    curs_set(1);
     refresh();
 }
 

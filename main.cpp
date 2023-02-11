@@ -79,7 +79,7 @@ int main(int argc, char *argv[]) {
         width = std::atoi(argv[2]);
         height = std::atoi(argv[3]);
     }
-    
+
     int x, y;
     getmaxyx(stdscr, y, x);
     y -= STATUS_LINES;
