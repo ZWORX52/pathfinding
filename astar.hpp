@@ -9,7 +9,7 @@
 namespace astar {
 class node {
     double _weight;
-    int _generation;
+    double _generation;
     int _x, _y;
     node *_parent;
 
@@ -24,16 +24,16 @@ class node {
         return _weight <=> other._weight;
     }
 
-    inline int x() { return _x; }
-    inline int y() { return _y; }
-    inline double weight() { return _weight; }
-    inline node *parent() { return _parent; }
+    inline int x() const { return _x; }
+    inline int y() const { return _y; }
+    inline double weight() const { return _weight; }
+    inline node *parent() const { return _parent; }
 
     static inline bool rev_cmp(node &lhs, node &rhs) { return lhs > rhs; }
 };
 
 struct stats {
-    size_t path_length;
+    double path_length;
     size_t queue_size;
     size_t explored_size;
     size_t explore_path_length;

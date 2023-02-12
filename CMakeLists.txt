@@ -10,17 +10,15 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(USE_ADDRESS_SANITIZER OFF)
 
 add_executable(pathfinding main.cpp render.cpp astar.cpp)
 
-if (USE_ADDRESS_SANITIZER)
-    target_compile_options(pathfinding PRIVATE -fsanitize=address)
-    target_link_options(pathfinding PRIVATE -fsanitize=address)
-endif()
 target_compile_options(pathfinding PRIVATE -Wall -Wextra -Werror -fdiagnostics-color)
-# target_compile_options(pathfinding PRIVATE $<$<CONFIG:Debug>:
-#     -Og
-#   >)
+target_compile_options(pathfinding PRIVATE $<$<CONFIG:Debug>:
+    -Og -fsanitize=address
+  >)
+target_link_options(pathfinding PRIVATE $<$<CONFIG:Debug>:
+    -fsanitize=address
+  >)
 
 target_link_libraries(pathfinding ncurses fmt)

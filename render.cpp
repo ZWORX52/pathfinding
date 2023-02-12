@@ -234,15 +234,17 @@ bool input() {
         case 'F':
             // from
             world[start_y][start_x] = PASSABLE;
+            update(start_x, start_y, PASSABLE);
             start_x = last_mouse_x;
             start_y = last_mouse_y - STATUS_LINES;
             world[start_y][start_x] = START;
             astar::change_start(astar::node(start_x, start_y));
-            update(goal_x, goal_y, START);
+            update(start_x, start_y, START);
             break;
         case 'T':
             // goal
             world[goal_y][goal_x] = PASSABLE;
+            update(goal_x, goal_y, PASSABLE);
             goal_x = last_mouse_x;
             goal_y = last_mouse_y - STATUS_LINES;
             world[goal_y][goal_x] = GOAL;

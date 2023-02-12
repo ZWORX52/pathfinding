@@ -17,6 +17,11 @@
 namespace astar {
 grid<int> *current_grid = nullptr;
 
+bool are_diagonally_connected(const node &a, const node &b) {
+    // hehehe
+    return (a.x() - b.x()) && (a.y() - b.y());
+}
+
 double node::compute_weight(node &goal) {
     // this is a*, so
 
@@ -29,7 +34,9 @@ double node::compute_weight(node &goal) {
     // | |
     // | \--- current node
     // \--- this whole function
-    int g = _parent->_generation + 1;
+    double g =
+        _parent->_generation +
+        (are_diagonally_connected(*_parent, *this) ? 1.4142135623730950488 : 1);
     // the actual diagonal distance formula is here, with more ascii art!
     // yay
     // distance to goal
@@ -57,7 +64,9 @@ node::node(int x, int y, node &goal, node *parent) {
     _x = x;
     _y = y;
     _parent = parent;
-    _generation = parent->_generation + 1;
+    _generation =
+        parent->_generation +
+        (are_diagonally_connected(*this, *parent) ? 1.4142135623730950488 : 1);
     _weight = compute_weight(goal);
 }
 
@@ -79,7 +88,7 @@ bool path_display = false;
 bool success = false;
 bool done = false;
 
-size_t path_length;
+double path_length;
 size_t explore_path_length;
 
 // it's a queue. sshhhh
@@ -171,7 +180,11 @@ void backtrack(grid<int> &world) {
         if (grid_square == EXPLORED)
             // grid_square = PATH;
             render::update(current->x(), current->y(), PATH);
-        path_length++;
+        if (current->parent())
+            path_length +=
+                (are_diagonally_connected(*current, *current->parent())
+                     ? 1.4142135623730950488
+                     : 1);
         current = current->parent();
     }
 }
